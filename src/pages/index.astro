@@ -8,7 +8,7 @@ import Layout from './layouts/Layout.astro'
     <section id='game'>
       <time class='text-yellow'></time>
       <p class='font-medium'></p>
-      <input autofocus />
+      <input autofocus class='opacity-0'/>
     </section>
   </main>
 </Layout>
@@ -70,12 +70,12 @@ import Layout from './layouts/Layout.astro'
     input.addEventListener('keyup', onKeyUp)
   }
 
-  function onKeyDown(event) {
+  function onKeyUp(event) {
     const currentWord = document.querySelector('word.active')
     const currentLetter = currentWord.querySelector('letter.active')
 
-    const wordLength = currentWord.textContent.trim().length
-    input.maxLength = wordLength
+    const wordLength = currentWord.textContent.trim()
+    input.maxLength = wordLength.length
 
     const allLetters = currentWord.querySelectorAll('letter')
 
@@ -85,15 +85,26 @@ import Layout from './layouts/Layout.astro'
 
     input.value.split('').forEach((char, index) => {
       const letter = allLetters[index]
-      const letterToCheck = currentWord[index]
-
-      const isCorrect = char === letterToCheck.textContent
+      const letterToCheck = wordLength[index]
+	  
+      const isCorrect = char === letterToCheck
       const letterClass = isCorrect ? 'correct' : 'incorrect'
       letter.classList.add(letterClass)
     })
+
+    currentLetter.classList.remove('active', 'is-last')
+    const inputLength = input.value.length
+    const nextActiveLetter = allLetters[inputLength]
+
+    if (nextActiveLetter) {
+      nextActiveLetter.classList.add('active')
+    } else {
+      currentLetter.classList.add('active','is-last')
+    }
+
   }
 
-  function onKeyUp(event) {}
+  function onKeyDown(event) {}
 
   function gameOver() {
     currentTime = INITIAL_TIME
@@ -121,6 +132,16 @@ import Layout from './layouts/Layout.astro'
       left: -62%;
       animation: 1s blink infinite ease-in-out;
     }
+    &.is-last::before {
+      left: 65%;
+    }
+    &.correct {
+      color: var(--green);
+    }
+    &.incorrect {
+      color: var(--red);
+    }
+
   }
 
   @keyframes blink {
