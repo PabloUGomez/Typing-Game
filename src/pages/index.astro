@@ -7,8 +7,8 @@ import Layout from './layouts/Layout.astro'
     <h1 class='text-center text-3xl font-semibold'>Typing Game</h1>
     <section id='game'>
       <time class='text-yellow'></time>
-      <p class='font-medium'></p>
-      <input autofocus class='opacity-0'/>
+      <p class='font-medium flex flex-wrap gap-x-2 m-0'></p>
+      <input autofocus class='-z-50 opacity-0 pointer-events-none' />
     </section>
   </main>
 </Layout>
@@ -37,13 +37,12 @@ import Layout from './layouts/Layout.astro'
     time.textContent = currentTime.toString()
 
     paragraph.innerHTML = words
-      .map((word, index) => {
+      .map((word) => {
         const letters = word.split('')
 
         return `<word>
         ${letters.map((letter) => `<letter>${letter}</letter>`).join('')}
-      </word>
-      `
+      </word>`
       })
       .join('')
 
@@ -86,7 +85,7 @@ import Layout from './layouts/Layout.astro'
     input.value.split('').forEach((char, index) => {
       const letter = allLetters[index]
       const letterToCheck = wordLength[index]
-	  
+
       const isCorrect = char === letterToCheck
       const letterClass = isCorrect ? 'correct' : 'incorrect'
       letter.classList.add(letterClass)
@@ -99,12 +98,36 @@ import Layout from './layouts/Layout.astro'
     if (nextActiveLetter) {
       nextActiveLetter.classList.add('active')
     } else {
-      currentLetter.classList.add('active','is-last')
+      currentLetter.classList.add('active', 'is-last')
     }
-
   }
 
-  function onKeyDown(event) {}
+  function onKeyDown(event) {
+    const currentWord = document.querySelector('word.active')
+    const currentLetter = currentWord.querySelector('letter.active')
+    const { key } = event
+
+    if (key === ' ') {
+      event.preventDefault()
+
+      const nextWord = currentWord.nextElementSibling
+      const nextLetter = nextWord.querySelector('letter')
+
+      currentWord.classList.remove('active', 'marked')
+      currentLetter.classList.remove('active')
+
+      nextWord.classList.add('active')
+      nextLetter.classList.add('active')
+
+      input.value = ''
+
+      const hasMissedLetters =
+        currentWord.querySelectorAll('letter:not(.correct)').length > 0
+
+      const classToAdd = hasMissedLetters ? 'marked' : 'correct'
+      currentWord.classList.add(classToAdd)
+    }
+  }
 
   function gameOver() {
     currentTime = INITIAL_TIME
@@ -121,6 +144,13 @@ import Layout from './layouts/Layout.astro'
     --red: #ca4754;
     --black: #222;
     --gray: #999;
+  }
+  word {
+    border-bottom: 1.5px solid transparent;
+    transition: border-color 0.3s ease-in-out;
+    &.marked {
+      border-bottom: solid 2px var(--red);
+    }
   }
   letter {
     color: var(--gray);
@@ -141,7 +171,6 @@ import Layout from './layouts/Layout.astro'
     &.incorrect {
       color: var(--red);
     }
-
   }
 
   @keyframes blink {
