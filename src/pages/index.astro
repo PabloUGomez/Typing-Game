@@ -3,12 +3,12 @@ import Layout from './layouts/Layout.astro'
 ---
 
 <Layout title='Typing Game'>
-  <main>
-    <h1>Typing Game</h1>
+  <main class="text-white">
+    <h1 class="text-center text-3xl font-semibold">Typing Game</h1>
     <section id='game'>
-      <time></time>
-      <p></p>
-      <input autofocus />
+      <time class="text-yellow"></time>
+      <p class='font-medium'></p>
+      <input autofocus hidden/>
     </section>
   </main>
 </Layout>
@@ -33,7 +33,7 @@ import Layout from './layouts/Layout.astro'
     words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 50)
     currentTime = INITIAL_TIME
 
-    time.textContent = currentTime
+	time.textContent = currentTime
 
     paragraph.innerHTML = words
       .map((word, index) => {
@@ -45,5 +45,21 @@ import Layout from './layouts/Layout.astro'
       `
       })
       .join('')
+
+    const intervalId = setInterval(() => {
+      currentTime--
+      time.textContent = currentTime
+
+      if (currentTime <= 0) {
+        clearInterval(intervalId)
+        gameOver()
+      }
+    }, 1000)
+  }
+
+  function gameOver() {
+	currentTime = INITIAL_TIME
+	console.log('Game Over!');
+	startGame()
   }
 </script>
