@@ -3,26 +3,87 @@ import Layout from './layouts/Layout.astro'
 ---
 
 <Layout title='Typing Game'>
-  <main class='text-white'>
-    <h1 class='text-center text-3xl font-semibold'>Typing Game</h1>
-    <section id='game'>
+  <main class='text-white flex flex-col justify-center items-center'>
+    <section id='game' class='text-2xl mt-20 max-w-4xl'>
       <time class='text-yellow'></time>
-      <p class='font-medium flex flex-wrap gap-x-2 m-0'></p>
+      <p class='font-medium flex flex-wrap gap-x-2 m-0 text-pretty mb-10'></p>
       <input autofocus class='-z-50 opacity-0 pointer-events-none' />
+      <div class='flex justify-center gap-2 my-2 w-full'>
+        <kbd class='kbd'>q</kbd>
+        <kbd class='kbd'>w</kbd>
+        <kbd class='kbd'>e</kbd>
+        <kbd class='kbd'>r</kbd>
+        <kbd class='kbd'>t</kbd>
+        <kbd class='kbd'>y</kbd>
+        <kbd class='kbd'>u</kbd>
+        <kbd class='kbd'>i</kbd>
+        <kbd class='kbd'>o</kbd>
+        <kbd class='kbd'>p</kbd>
+      </div>
+      <div class='flex justify-center gap-2 my-2 w-full'>
+        <kbd class='kbd'>a</kbd>
+        <kbd class='kbd'>s</kbd>
+        <kbd class='kbd'>d</kbd>
+        <kbd class='kbd'>f</kbd>
+        <kbd class='kbd'>g</kbd>
+        <kbd class='kbd'>h</kbd>
+        <kbd class='kbd'>j</kbd>
+        <kbd class='kbd'>k</kbd>
+        <kbd class='kbd'>l</kbd>
+      </div>
+      <div class='flex justify-center gap-2 my-2 w-full'>
+        <kbd class='kbd'>z</kbd>
+        <kbd class='kbd'>x</kbd>
+        <kbd class='kbd'>c</kbd>
+        <kbd class='kbd'>v</kbd>
+        <kbd class='kbd'>b</kbd>
+        <kbd class='kbd'>n</kbd>
+        <kbd class='kbd'>m</kbd>
+      </div>
     </section>
-    <section id="results">
+    <section
+      id='results'
+      class='w-2/3 flex justify-center items-center my-20 mx-32'
+    >
+      <samp class='text-left flex justify-around w-full font-semibold text-5xl'>
+        <span class='flex gap-3'>
+          <h2>wrp</h2>
+          <h3></h3>
+        </span>
+        <span class='flex gap-3'>
+          <h2>accuracy</h2>
+          <h3 id='result-accuracy'></h3></span
+        >
+      </samp>
+      <div
+        class='chart-container flex justify-center items-center mt-16 mb-10'
+        style='position: relative; height:50vh; width:100vw'
+      >
+        <canvas id='myChart'></canvas>
+      </div>
 
+      <button
+        id='restart-button'
+        class='rounded-md px-4 py-2 hover:bg-gray w-32'>Try Again</button
+      >
     </section>
   </main>
 </Layout>
+<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
 
 <script>
+  import Chart from 'chart.js/auto'
   import { words as INITIAL_WORDS } from './store/data.js'
 
   const time = document.querySelector('time')
   const paragraph = document.querySelector('p')
   const input = document.querySelector('input')
-
+  const game = document.querySelector('#game') as HTMLElement
+  const results = document.querySelector('#results') as HTMLElement
+  const accuracy = results.querySelector('#result-accuracy')
+  const wpm = results.querySelector('h3')
+  const restartButton = results.querySelector('button')
+  const keyboard = document.querySelectorAll('.kbd')
   const INITIAL_TIME = 30
 
   let words = []
@@ -30,6 +91,12 @@ import Layout from './layouts/Layout.astro'
 
   startGame()
   initEvents()
+
+  restartButton.addEventListener('click', () => {
+    game.style.display = 'block'
+    results.style.display = 'none'
+    startGame()
+  })
 
   function startGame() {
     words = [...INITIAL_WORDS]
@@ -53,14 +120,21 @@ import Layout from './layouts/Layout.astro'
     firstWord.classList.add('active')
     firstWord.querySelector('letter').classList.add('active')
 
+    const wpr = []
     const intervalId = setInterval(() => {
+      let wordsInSecond = 0
       currentTime--
       time.textContent = currentTime.toString()
-
+      const lettersCorrectNotInChart = paragraph.querySelectorAll('letter.correct:not(.in-chart)').length
+      wordsInSecond = lettersCorrectNotInChart / 6 
+      wpr.push(wordsInSecond*60)
       if (currentTime <= 0) {
         clearInterval(intervalId)
-        gameOver()
+        gameOver(wpr)
       }
+      paragraph.querySelectorAll('letter.correct').forEach(element => {
+        element.classList.add('in-chart')
+      });
     }, 1000)
   }
 
@@ -73,6 +147,14 @@ import Layout from './layouts/Layout.astro'
   }
 
   function onKeyUp(event) {
+    const { key } = event
+
+    keyboard.forEach((kbd) => {
+      kbd.classList.remove('clicked')
+      if (kbd.textContent === key) {
+        kbd.classList.add('clicked')
+      }
+    })
     const currentWord = document.querySelector('word.active')
     const currentLetter = currentWord.querySelector('letter.active')
 
@@ -90,8 +172,9 @@ import Layout from './layouts/Layout.astro'
       const letterToCheck = wordLength[index]
 
       const isCorrect = char === letterToCheck
-      const letterClass = isCorrect ? 'correct' : 'incorrect'
-      letter.classList.add(letterClass)
+      const classToAdd = isCorrect ? 'correct' : 'incorrect'
+      isCorrect && letter.classList.remove('marked')
+      letter.classList.add(classToAdd)
     })
 
     currentLetter.classList.remove('active', 'is-last')
@@ -118,6 +201,9 @@ import Layout from './layouts/Layout.astro'
 
       currentWord.classList.remove('active', 'marked')
       currentLetter.classList.remove('active')
+      currentWord.querySelectorAll('letter:not(.correct)').forEach((el) => {
+        el.classList.add('marked')
+      })
 
       nextWord.classList.add('active')
       nextLetter.classList.add('active')
@@ -126,7 +212,6 @@ import Layout from './layouts/Layout.astro'
 
       const hasMissedLetters =
         currentWord.querySelectorAll('letter:not(.correct)').length > 0
-
       const classToAdd = hasMissedLetters ? 'marked' : 'correct'
       currentWord.classList.add(classToAdd)
     }
@@ -161,10 +246,46 @@ import Layout from './layouts/Layout.astro'
     }
   }
 
-  function gameOver() {
-    currentTime = INITIAL_TIME
-    console.log('Game Over!')
-    startGame()
+  function gameOver(wpr) {
+    game.style.display = 'none'
+    results.style.display = 'flex'
+
+    const correctWords = paragraph.querySelectorAll('word.correct').length
+    const correctLetters = paragraph.querySelectorAll('letter.correct').length
+    const markedLetters = [
+      ...paragraph.querySelectorAll('letter:not(.incorrect)'),
+    ].filter((el) => el.classList.contains('marked')).length
+
+    const incorrectLetters =
+      paragraph.querySelectorAll('letter.incorrect').length
+    const totalLetters = correctLetters + incorrectLetters + markedLetters
+
+    const accuracyValue = totalLetters > 0 ? correctLetters / totalLetters : 0
+    const wpmValue = Math.round(correctWords * (60 / INITIAL_TIME))
+    const ctx = document.getElementById('myChart') as HTMLCanvasElement
+    const labels = []
+    for (let i = 0; i <= INITIAL_TIME; i++) labels.push(i)    
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Words per minute',
+            data: wpr,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        layout: {
+          padding: 5,
+        },
+      },
+    })
+    accuracy.textContent = `${(accuracyValue * 100).toFixed(2)}%`
+    wpm.textContent = wpmValue.toString()
   }
 </script>
 
@@ -182,6 +303,7 @@ import Layout from './layouts/Layout.astro'
   }
   #results {
     display: none;
+    flex-direction: column;
   }
   word {
     border-bottom: 1.5px solid transparent;
@@ -210,7 +332,26 @@ import Layout from './layouts/Layout.astro'
       color: var(--red);
     }
   }
+  .clicked {
+    animation: pulse 0.7s ease-in-out;
+  }
 
+  .kbd {
+    min-width: 4rem;
+    min-height: 4rem;
+  }
+
+  @keyframes pulse {
+    0% {
+      background-color: var(--black);
+    }
+    50% {
+      background-color: var(--gray);
+    }
+    100% {
+      background-color: var(--black);
+    }
+  }
   @keyframes blink {
     0%,
     25% {
