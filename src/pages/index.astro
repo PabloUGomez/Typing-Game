@@ -125,16 +125,18 @@ import Layout from './layouts/Layout.astro'
       let wordsInSecond = 0
       currentTime--
       time.textContent = currentTime.toString()
-      const lettersCorrectNotInChart = paragraph.querySelectorAll('letter.correct:not(.in-chart)').length
-      wordsInSecond = lettersCorrectNotInChart / 6 
-      wpr.push(wordsInSecond*60)
+      const lettersCorrectNotInChart = paragraph.querySelectorAll(
+        'letter.correct:not(.in-chart)'
+      ).length
+      wordsInSecond = lettersCorrectNotInChart / 6
+      wpr.push(wordsInSecond * 60)
       if (currentTime <= 0) {
         clearInterval(intervalId)
         gameOver(wpr)
       }
-      paragraph.querySelectorAll('letter.correct').forEach(element => {
+      paragraph.querySelectorAll('letter.correct').forEach((element) => {
         element.classList.add('in-chart')
-      });
+      })
     }, 1000)
   }
 
@@ -264,7 +266,7 @@ import Layout from './layouts/Layout.astro'
     const wpmValue = Math.round(correctWords * (60 / INITIAL_TIME))
     const ctx = document.getElementById('myChart') as HTMLCanvasElement
     const labels = []
-    for (let i = 0; i <= INITIAL_TIME; i++) labels.push(i)    
+    for (let i = 0; i <= INITIAL_TIME; i++) labels.push(i)
 
     new Chart(ctx, {
       type: 'line',
@@ -279,6 +281,22 @@ import Layout from './layouts/Layout.astro'
         ],
       },
       options: {
+        animations: {
+          tension: {
+            duration: 1000,
+            easing: 'linear',
+            from: 1,
+            to: 0,
+            loop: true,
+          },
+        },
+        scales: {
+          y: {
+            // defining min and max so hiding the dataset does not change scale range
+            min: 0,
+            max: 70,
+          },
+        },
         layout: {
           padding: 5,
         },
