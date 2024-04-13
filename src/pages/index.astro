@@ -1,12 +1,68 @@
 ---
 import Layout from './layouts/Layout.astro'
+import Quote from './icons/Quote.astro'
+import Time from './icons/Time.astro'
+import Words from './icons/Words.astro'
 ---
 
 <Layout title='Typing Game'>
-  <main class='text-white flex flex-col justify-center items-center'>
-    <section id='game' class='text-2xl mt-20 max-w-4xl'>
+  <main class='text-white flex flex-col justify-center items-center h-screen'>
+    <header
+      class='flex justify-center items-center bg-gray/10 rounded-md py-2 px-4 text-sbase text-gray'
+    >
+      <nav>
+        <ul class='flex gap-x-6'>
+          <li>
+            <button class='button-time selected flex gap-x-1 items-center'
+              ><Time />time</button
+            >
+          </li>
+          <li>
+            <button class='button-words flex gap-x-1 items-center'
+              ><Words />words</button
+            >
+          </li>
+          <li>
+            <button class='button-quote flex gap-x-1 items-center'
+              ><Quote />quote</button
+            >
+          </li>
+        </ul>
+      </nav>
+      <span class='spacer rounded-md mx-4'></span>
+      <span class="time-options">
+        <ul class='flex gap-x-4'>
+          <li>15</li>
+          <li class='selected'>30</li>
+          <li>60</li>
+          <li>120</li>
+        </ul>
+      </span>
+      <span>
+        <ul class='gap-x-4 hidden word-options'>
+          <li>10</li>
+          <li>25</li>
+          <li>50</li>
+          <li>100</li>
+        </ul>
+      </span>
+      <span>
+        <ul class='gap-x-3 hidden quote-options'>
+          <li>all</li>
+          <li>short</li>
+          <li>medium</li>
+          <li>long</li>
+        </ul>
+      </span>
+    </header>
+    <button
+      id='restart-button'
+      class='rounded-md px-4 py-2 hover:bg-gray bg-gray/10 shadow-lg w-32 mt-10'
+      >Start</button
+    >
+    <section id='game' class='text-2xl mt-24 max-w-5xl mx-32'>
       <time class='text-yellow'></time>
-      <p class='font-medium flex flex-wrap gap-x-2 m-0 text-pretty mb-10'></p>
+      <p class='font-medium flex flex-wrap gap-x-2 m-0 text-balance mb-6'></p>
       <input autofocus class='-z-50 opacity-0 pointer-events-none' />
       <div class='flex justify-center gap-2 my-2 w-full'>
         <kbd class='kbd'>q</kbd>
@@ -43,9 +99,9 @@ import Layout from './layouts/Layout.astro'
     </section>
     <section
       id='results'
-      class='w-2/3 flex justify-center items-center my-20 mx-32'
+      class='w-2/3 flex justify-center items-center mt-8 mx-32'
     >
-      <samp class='text-left flex justify-around w-full font-semibold text-5xl'>
+      <samp class='text-left flex w-full font-semibold text-4xl items-center gap-x-12 justify-center'>
         <span class='flex gap-3'>
           <h2>wrp</h2>
           <h3></h3>
@@ -56,16 +112,11 @@ import Layout from './layouts/Layout.astro'
         >
       </samp>
       <div
-        class='chart-container flex justify-center items-center mt-16 mb-10'
+        class='chart-container flex justify-center items-center my-9'
         style='position: relative; height:50vh; width:100vw'
       >
         <canvas id='myChart'></canvas>
       </div>
-
-      <button
-        id='restart-button'
-        class='rounded-md px-4 py-2 hover:bg-gray w-32'>Try Again</button
-      >
     </section>
   </main>
 </Layout>
@@ -82,9 +133,17 @@ import Layout from './layouts/Layout.astro'
   const results = document.querySelector('#results') as HTMLElement
   const accuracy = results.querySelector('#result-accuracy')
   const wpm = results.querySelector('h3')
-  const restartButton = results.querySelector('button')
+  const restartButton = document.querySelector('#restart-button')
   const keyboard = document.querySelectorAll('.kbd')
-  const INITIAL_TIME = 30
+  const INITIAL_TIME = 3
+  const header = document.querySelector('header')
+  const buttonTime = document.querySelector('.button-time')
+  const buttonWords = document.querySelector('.button-words')
+  const buttonQuote = document.querySelector('.button-quote')
+  const timeOptions = document.querySelector('.time-options')
+  const wordOptions = document.querySelector('.word-options')
+  const quoteOptions = document.querySelector('.quote-options')
+
 
   let words = []
   let currentTime = INITIAL_TIME
@@ -92,20 +151,67 @@ import Layout from './layouts/Layout.astro'
   startGame()
   initEvents()
 
+  buttonTime.addEventListener('click', () => {
+    buttonTime.classList.add('selected')
+    buttonWords.classList.remove('selected')
+    buttonQuote.classList.remove('selected')
+    timeOptions.classList.remove('hidden')
+    timeOptions.classList.add('flex')
+    wordOptions.classList.add('hidden')
+    quoteOptions.classList.add('hidden')    
+    currentTime = 30
+    startGame()
+  })
+
+  buttonWords.addEventListener('click', () => {
+    buttonWords.classList.add('selected')
+    buttonTime.classList.remove('selected')
+    buttonQuote.classList.remove('selected')
+    wordOptions.classList.remove('hidden')
+    wordOptions.classList.add('flex')
+    timeOptions.classList.add('hidden')
+    quoteOptions.classList.add('hidden')
+  })
+
+  buttonQuote.addEventListener('click', () => {
+    buttonQuote.classList.add('selected')
+    buttonTime.classList.remove('selected')
+    buttonWords.classList.remove('selected')
+    quoteOptions.classList.remove('hidden')
+    quoteOptions.classList.add('flex')
+    timeOptions.classList.add('hidden')
+    wordOptions.classList.add('hidden')
+  })
+
   restartButton.addEventListener('click', () => {
     game.style.display = 'block'
     results.style.display = 'none'
-    startGame()
+    if (restartButton.textContent === 'Start') {
+      startTimer('init')
+      restartButton.textContent = 'Restart'
+      return
+    }
+    if (restartButton.textContent === 'Try again') {
+      header.style.display = 'flex'
+      restartButton.textContent = 'Start'
+      startTimer('clear')
+      startGame()
+      return
+    }
+    if (restartButton.textContent === 'Restart') {
+      startTimer('clear')
+      startGame()
+      return
+    }
   })
 
   function startGame() {
     words = [...INITIAL_WORDS]
     currentTime = INITIAL_TIME
     words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 50)
-    currentTime = INITIAL_TIME
-
     time.textContent = currentTime.toString()
 
+    input.value = ''
     paragraph.innerHTML = words
       .map((word) => {
         const letters = word.split('')
@@ -119,25 +225,41 @@ import Layout from './layouts/Layout.astro'
     const firstWord = document.querySelector('word')
     firstWord.classList.add('active')
     firstWord.querySelector('letter').classList.add('active')
+    console.log('firstWord', firstWord);
+    console.log('firstWordLetter', firstWord.querySelector('letter'));
+    
+    
+  }
 
-    const wpr = []
-    const intervalId = setInterval(() => {
-      let wordsInSecond = 0
-      currentTime--
-      time.textContent = currentTime.toString()
-      const lettersCorrectNotInChart = paragraph.querySelectorAll(
-        'letter.correct:not(.in-chart)'
-      ).length
-      wordsInSecond = lettersCorrectNotInChart / 6
-      wpr.push(wordsInSecond * 60)
-      if (currentTime <= 0) {
-        clearInterval(intervalId)
-        gameOver(wpr)
-      }
-      paragraph.querySelectorAll('letter.correct').forEach((element) => {
-        element.classList.add('in-chart')
-      })
-    }, 1000)
+  function startTimer(action) {
+    currentTime = INITIAL_TIME
+    time.textContent = currentTime.toString()
+
+    if (action === 'init') {
+      const wpr = []
+      const intervalId = setInterval(() => {
+        if (action === 'clear') {
+          clearInterval(intervalId)
+          return
+        }
+        let wordsInSecond = 0
+        currentTime--
+        time.textContent = currentTime.toString()
+        const lettersCorrectNotInChart = paragraph.querySelectorAll(
+          'letter.correct:not(.in-chart)'
+        ).length
+        wordsInSecond = lettersCorrectNotInChart / 6
+        wpr.push(wordsInSecond * 60)
+        if (currentTime <= 0) {
+          gameOver(wpr)
+          clearInterval(intervalId)
+          restartButton.textContent = 'Try again'
+        }
+        paragraph.querySelectorAll('letter.correct').forEach((element) => {
+          element.classList.add('in-chart')
+        })
+      }, 1000)
+    }
   }
 
   function initEvents() {
@@ -150,6 +272,10 @@ import Layout from './layouts/Layout.astro'
 
   function onKeyUp(event) {
     const { key } = event
+    
+    if (restartButton.textContent === 'Start') {
+      restartButton.dispatchEvent(new Event('click'))
+    }
 
     keyboard.forEach((kbd) => {
       kbd.classList.remove('clicked')
@@ -249,6 +375,7 @@ import Layout from './layouts/Layout.astro'
   }
 
   function gameOver(wpr) {
+    header.style.display = 'none'
     game.style.display = 'none'
     results.style.display = 'flex'
 
@@ -264,6 +391,10 @@ import Layout from './layouts/Layout.astro'
 
     const accuracyValue = totalLetters > 0 ? correctLetters / totalLetters : 0
     const wpmValue = Math.round(correctWords * (60 / INITIAL_TIME))
+    let chartStatus = Chart.getChart('myChart')
+    if (chartStatus != undefined) {
+      chartStatus.destroy()
+    }
     const ctx = document.getElementById('myChart') as HTMLCanvasElement
     const labels = []
     for (let i = 0; i <= INITIAL_TIME; i++) labels.push(i)
@@ -322,6 +453,21 @@ import Layout from './layouts/Layout.astro'
   #results {
     display: none;
     flex-direction: column;
+  }
+  header li {
+    cursor: pointer;
+    &:hover {
+      color: rgb(255, 255, 255, 0.9);
+    }
+  }
+  .selected {
+    color: var(--yellow);
+  }
+  .spacer {
+    height: 100%;
+    width: 3px;
+    background-color: var(--gray);
+    opacity: 0.5;
   }
   word {
     border-bottom: 1.5px solid transparent;
