@@ -6,9 +6,9 @@ import Words from './icons/Words.astro'
 ---
 
 <Layout title='Typing Game'>
-  <main class='text-white flex flex-col justify-center items-center h-screen'>
+  <main class='text-white flex flex-col items-center h-screen overflow-hidden'>
     <header
-      class='flex justify-center items-center bg-gray/10 rounded-md py-2 px-4 text-sbase text-gray'
+      class='flex justify-center items-center bg-gray/10 rounded-md py-2 px-4 text-gray text-xs md:text-base mt-6'
     >
       <nav>
         <ul class='flex gap-x-6'>
@@ -30,20 +30,20 @@ import Words from './icons/Words.astro'
         </ul>
       </nav>
       <span class='spacer rounded-md mx-4'></span>
-      <span class="time-options">
+      <span class='time-options'>
         <ul class='flex gap-x-4'>
-          <li>15</li>
-          <li class='selected'>30</li>
-          <li>60</li>
-          <li>120</li>
+          <li id='time-15'>15</li>
+          <li id='time-30' class='selected'>30</li>
+          <li id='time-60'>60</li>
+          <li id='time-120'>120</li>
         </ul>
       </span>
       <span>
         <ul class='gap-x-4 hidden word-options'>
-          <li>10</li>
-          <li>25</li>
-          <li>50</li>
-          <li>100</li>
+          <li id='word-10'>10</li>
+          <li id='word-25'>25</li>
+          <li id='word-50' class='selected'>50</li>
+          <li id='word-100'>100</li>
         </ul>
       </span>
       <span>
@@ -57,12 +57,22 @@ import Words from './icons/Words.astro'
     </header>
     <button
       id='restart-button'
-      class='rounded-md px-4 py-2 hover:bg-gray bg-gray/10 shadow-lg w-32 mt-10'
+      class='rounded-md px-4 py-2 hover:bg-gray bg-gray/10 shadow-lg w-32 mt-6'
       >Start</button
     >
-    <section id='game' class='text-2xl mt-24 max-w-5xl mx-32'>
-      <time class='text-yellow'></time>
-      <p class='font-medium flex flex-wrap gap-x-2 m-0 text-balance mb-6'></p>
+    <section
+      id='game'
+      class='flex xl:text-2xl 2xl:mt-16 text-sm mt-6 max-w-5xl mx-10 lg:text-xl lg:mt-10 xs:mt-32 sm:mx-32 sm:font-bold'
+    >
+      <span class='h-52 flex flex-col justify-center w-full'
+        ><time class='text-yellow'></time>
+        <span class='flex justify-center w-full'>
+          <p
+            class='font-medium gap-x-2 flex flex-wrap m-0 text-balance items-center'
+          >
+          </p>
+        </span>
+      </span>
       <input autofocus class='-z-50 opacity-0 pointer-events-none' />
       <div class='flex justify-center gap-2 my-2 w-full'>
         <kbd class='kbd'>q</kbd>
@@ -99,9 +109,11 @@ import Words from './icons/Words.astro'
     </section>
     <section
       id='results'
-      class='w-2/3 flex justify-center items-center mt-8 mx-32'
+      class='w-2/3 hidden justify-center items-center mt-8 mx-32'
     >
-      <samp class='text-left flex w-full font-semibold text-4xl items-center gap-x-12 justify-center'>
+      <samp
+        class='text-left flex w-full font-semibold text-4xl items-center gap-x-12 justify-center'
+      >
         <span class='flex gap-3'>
           <h2>wrp</h2>
           <h3></h3>
@@ -135,7 +147,7 @@ import Words from './icons/Words.astro'
   const wpm = results.querySelector('h3')
   const restartButton = document.querySelector('#restart-button')
   const keyboard = document.querySelectorAll('.kbd')
-  const INITIAL_TIME = 30
+  let INITIAL_TIME = 30
   const header = document.querySelector('header')
   const buttonTime = document.querySelector('.button-time')
   const buttonWords = document.querySelector('.button-words')
@@ -143,27 +155,75 @@ import Words from './icons/Words.astro'
   const timeOptions = document.querySelector('.time-options')
   const wordOptions = document.querySelector('.word-options')
   const quoteOptions = document.querySelector('.quote-options')
+  const time15 = document.querySelector('#time-15')
+  const time30 = document.querySelector('#time-30')
+  const time60 = document.querySelector('#time-60')
+  const time120 = document.querySelector('#time-120')
+  const word10 = document.querySelector('#word-10')
+  const word25 = document.querySelector('#word-25')
+  const word50 = document.querySelector('#word-50')
+  const word100 = document.querySelector('#word-100')
 
-
-  let words = []
-  let currentTime = INITIAL_TIME
+  let words = [...INITIAL_WORDS]
+  words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 50)
+  let currentTime = 0
 
   startGame()
   initEvents()
 
   buttonTime.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
+    time.classList.remove('hidden')
     buttonTime.classList.add('selected')
     buttonWords.classList.remove('selected')
     buttonQuote.classList.remove('selected')
     timeOptions.classList.remove('hidden')
     timeOptions.classList.add('flex')
     wordOptions.classList.add('hidden')
-    quoteOptions.classList.add('hidden')    
-    currentTime = 30
+    quoteOptions.classList.add('hidden')
+    time30.dispatchEvent(new Event('click'))
+    startGame()
+  })
+
+  time15.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
+    time15.classList.add('selected')
+    time30.classList.remove('selected')
+    time60.classList.remove('selected')
+    time120.classList.remove('selected')
+    INITIAL_TIME = 15
+    startGame()
+  })
+  time30.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
+    time30.classList.add('selected')
+    time15.classList.remove('selected')
+    time60.classList.remove('selected')
+    time120.classList.remove('selected')
+    INITIAL_TIME = 30
+    startGame()
+  })
+  time60.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
+    time60.classList.add('selected')
+    time15.classList.remove('selected')
+    time30.classList.remove('selected')
+    time120.classList.remove('selected')
+    INITIAL_TIME = 60
+    startGame()
+  })
+  time120.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
+    time120.classList.add('selected')
+    time15.classList.remove('selected')
+    time30.classList.remove('selected')
+    time60.classList.remove('selected')
+    INITIAL_TIME = 120
     startGame()
   })
 
   buttonWords.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
     buttonWords.classList.add('selected')
     buttonTime.classList.remove('selected')
     buttonQuote.classList.remove('selected')
@@ -171,6 +231,46 @@ import Words from './icons/Words.astro'
     wordOptions.classList.add('flex')
     timeOptions.classList.add('hidden')
     quoteOptions.classList.add('hidden')
+    time.classList.add('hidden')
+    word50.dispatchEvent(new Event('click'))
+    startTimer('clear')
+    INITIAL_TIME = 999
+  })
+  word10.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
+    word10.classList.add('selected')
+    word25.classList.remove('selected')
+    word50.classList.remove('selected')
+    word100.classList.remove('selected')
+    words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 10)
+    startGame()
+  })
+  word25.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
+    word25.classList.add('selected')
+    word10.classList.remove('selected')
+    word50.classList.remove('selected')
+    word100.classList.remove('selected')
+    words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 25)
+    startGame()
+  })
+  word50.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
+    word50.classList.add('selected')
+    word10.classList.remove('selected')
+    word25.classList.remove('selected')
+    word100.classList.remove('selected')
+    words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 50)
+    startGame()
+  })
+  word100.addEventListener('click', () => {
+    restartButton.textContent = 'Start'
+    word100.classList.add('selected')
+    word10.classList.remove('selected')
+    word25.classList.remove('selected')
+    word50.classList.remove('selected')
+    words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 100)
+    startGame()
   })
 
   buttonQuote.addEventListener('click', () => {
@@ -194,6 +294,10 @@ import Words from './icons/Words.astro'
     if (restartButton.textContent === 'Try again') {
       header.style.display = 'flex'
       restartButton.textContent = 'Start'
+      if (buttonWords.classList.contains('selected')) {
+        INITIAL_TIME = 999
+        wordOptions.querySelector('li.selected').dispatchEvent(new Event('click'))        
+      }
       startTimer('clear')
       startGame()
       return
@@ -206,10 +310,11 @@ import Words from './icons/Words.astro'
   })
 
   function startGame() {
-    words = [...INITIAL_WORDS]
-    currentTime = INITIAL_TIME
-    words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 50)
-    time.textContent = currentTime.toString()
+    if (INITIAL_TIME != 999) {
+      currentTime = INITIAL_TIME
+      time.textContent = currentTime.toString()
+      words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 50)
+    }
 
     input.value = ''
     paragraph.innerHTML = words
@@ -225,41 +330,37 @@ import Words from './icons/Words.astro'
     const firstWord = document.querySelector('word')
     firstWord.classList.add('active')
     firstWord.querySelector('letter').classList.add('active')
-    console.log('firstWord', firstWord);
-    console.log('firstWordLetter', firstWord.querySelector('letter'));
-    
-    
   }
 
   function startTimer(action) {
-    currentTime = INITIAL_TIME
-    time.textContent = currentTime.toString()
-
-    if (action === 'init') {
-      const wpr = []
-      const intervalId = setInterval(() => {
-        if (action === 'clear') {
-          clearInterval(intervalId)
-          return
-        }
+    const wpr = []
+    const intervalId = setInterval(() => {
+      if (restartButton.textContent === 'Start') {
+        clearInterval(intervalId)
+        return
+      }
+      if (action === 'init') {
         let wordsInSecond = 0
-        currentTime--
         time.textContent = currentTime.toString()
         const lettersCorrectNotInChart = paragraph.querySelectorAll(
           'letter.correct:not(.in-chart)'
         ).length
-        wordsInSecond = lettersCorrectNotInChart / 6
-        wpr.push(wordsInSecond * 60)
-        if (currentTime <= 0) {
+        wordsInSecond = lettersCorrectNotInChart
+        wpr.push(wordsInSecond * 10)
+        if (currentTime <= 0 || INITIAL_TIME === 0) {
           gameOver(wpr)
           clearInterval(intervalId)
           restartButton.textContent = 'Try again'
         }
+
         paragraph.querySelectorAll('letter.correct').forEach((element) => {
           element.classList.add('in-chart')
         })
-      }, 1000)
-    }
+        currentTime--
+        console.log('wpr', wpr);
+        
+      }
+    }, 1000)
   }
 
   function initEvents() {
@@ -272,7 +373,8 @@ import Words from './icons/Words.astro'
 
   function onKeyUp(event) {
     const { key } = event
-    
+    const paragraphArray = [...paragraph.querySelectorAll('letter')]
+    const lastLetter = paragraphArray[paragraphArray.length - 1]
     if (restartButton.textContent === 'Start') {
       restartButton.dispatchEvent(new Event('click'))
     }
@@ -313,6 +415,9 @@ import Words from './icons/Words.astro'
       nextActiveLetter.classList.add('active')
     } else {
       currentLetter.classList.add('active', 'is-last')
+    }
+    if (lastLetter.classList.contains('correct') || lastLetter.classList.contains('incorrect') || lastLetter.classList.contains('marked')) {
+      INITIAL_TIME = 0
     }
   }
 
@@ -390,14 +495,18 @@ import Words from './icons/Words.astro'
     const totalLetters = correctLetters + incorrectLetters + markedLetters
 
     const accuracyValue = totalLetters > 0 ? correctLetters / totalLetters : 0
-    const wpmValue = Math.round(correctWords * (60 / INITIAL_TIME))
+    const wpmValue = Math.round(correctWords * (60 / (wpr.length)))
+    console.log(wpr.length);
+    
     let chartStatus = Chart.getChart('myChart')
     if (chartStatus != undefined) {
       chartStatus.destroy()
     }
     const ctx = document.getElementById('myChart') as HTMLCanvasElement
     const labels = []
-    for (let i = 0; i <= INITIAL_TIME; i++) labels.push(i)
+    for (let i = 0; i < wpr.length; i++) {
+      labels.push(i)
+    }
 
     new Chart(ctx, {
       type: 'line',
@@ -470,6 +579,7 @@ import Words from './icons/Words.astro'
     opacity: 0.5;
   }
   word {
+    height: fit-content;
     border-bottom: 1.5px solid transparent;
     transition: border-color 0.3s ease-in-out;
     &.marked {
@@ -477,6 +587,7 @@ import Words from './icons/Words.astro'
     }
   }
   letter {
+    height: fit-content;
     color: var(--gray);
     position: relative;
     &.active::before {
@@ -503,6 +614,18 @@ import Words from './icons/Words.astro'
   .kbd {
     min-width: 4rem;
     min-height: 4rem;
+  }
+  @media screen and (max-width: 1200px) {
+    .kbd {
+      min-width: 3rem;
+      min-height: 3rem;
+    }
+  }
+
+  @media screen and (max-width: 600px) {
+    .kbd {
+      display: none;
+    }
   }
 
   @keyframes pulse {
